@@ -10,8 +10,7 @@
 
 */
 #include <pybind11/pybind11.h>
-#include <pybind11/numpy.h>
-#include <behcc_python.h>
+#include <behcc/hash_encoder.h>
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
