@@ -1,5 +1,5 @@
 /*
-    src/behcc_python.cpp: Python API for behcc.h
+    include/behcc/numpy.h: Numpy interface functions
 
     Copyright (c) 2021 Ralph Urlus <rurlus.dev@gmail.com>
 
@@ -10,21 +10,15 @@
 
 */
 
-#ifndef INCLUDE_BEHCC_C_H_
-#define INCLUDE_BEHCC_C_H_
+#ifndef INCLUDE_BEHCC_NUMPY_H_
+#define INCLUDE_BEHCC_NUMPY_H_
 #define NPY_NO_DEPRECATED_API NPY_1_14_API_VERSION
 
 #include <Python.h>
 #include <numpy/arrayobject.h>
 #include <numpy/ndarraytypes.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/numpy.h>
 
 #include <algorithm>
-#include <iostream>
-
-namespace py = pybind11;
-
 
 namespace behcc {
 
@@ -109,4 +103,4 @@ static inline size_t get_stride(PyArrayObject* arr) {
 }
 
 }  // namespace behcc
-#endif  // INCLUDE_BEHCC_C_H_
+#endif  // INCLUDE_BEHCC_NUMPY_H_

@@ -1,5 +1,5 @@
 /*
-    src/behcc.cpp: Binary Encoding for High Cardinality Categoricals
+    include/behcc/behcc.h: Binary Encoding for High Cardinality Categoricals
 
     Copyright (c) 2021 Ralph Urlus <rurlus.dev@gmail.com>
 
@@ -9,13 +9,15 @@
     http://www.apache.org/licenses/LICENSE-2.0
 
 */
-#ifndef INCLUDE_BEHCC_H_
-#define INCLUDE_BEHCC_H_
+#ifndef INCLUDE_BEHCC_BEHCC_H_
+#define INCLUDE_BEHCC_BEHCC_H_
 
 #include <xxhash.h>
+
 #include <cmath>
 #include <string>
 #include <algorithm>
+#include <type_traits>
 
 namespace behcc {
 /*
@@ -345,4 +347,4 @@ inline void hash_to_binary_array_128bits(
 }
 
 }  // namespace behcc
-#endif  // INCLUDE_BEHCC_H_
+#endif  // INCLUDE_BEHCC_BEHCC_H_

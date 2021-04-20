@@ -12,7 +12,7 @@ SET(EXT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/extern)
 pybind11_add_module(${MODNAME}
     MODULE
         ${PROJECT_SOURCE_DIR}/src/bindings.cpp
-        ${PROJECT_SOURCE_DIR}/src/behcc_python.cpp
+        ${PROJECT_SOURCE_DIR}/src/hash_encoder.cpp
 )
 
 # PYBIT_VERSION_INFO is defined by setup.py and passed into the C++ code as a

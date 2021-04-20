@@ -1,5 +1,5 @@
 /*
-    src/behcc_python.cpp: Python API for behcc.h
+    include/behcc/hash_encoder.h: Defines HashBinaryEncoder
 
     Copyright (c) 2021 Ralph Urlus <rurlus.dev@gmail.com>
 
@@ -10,26 +10,26 @@
 
 */
 
-#ifndef INCLUDE_BEHCC_PYTHON_H_
-#define INCLUDE_BEHCC_PYTHON_H_
+#ifndef INCLUDE_BEHCC_HASH_ENCODER_H_
+#define INCLUDE_BEHCC_HASH_ENCODER_H_
 
-#include <behcc.h>
-#include <behcc_c.h>
-#include <xxhash.h>
+#include <behcc/behcc.h>
+#include <behcc/numpy.h>
+#include <behcc/common.h>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
-
-#include <string>
-
+#include <numpy/arrayobject.h>
 
 namespace py = pybind11;
 
 
 namespace behcc {
 namespace pyapi {
+
 class HashBinaryEncoder;
 void bind_hashbinaryencoding(py::module &m);
+
 }  // namespace pyapi
 }  // namespace behcc
-#endif  // INCLUDE_BEHCC_PYTHON_H_
+#endif  // INCLUDE_BEHCC_HASH_ENCODER_H_

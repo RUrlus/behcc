@@ -1,5 +1,5 @@
 /*
-    src/behcc.cpp: Python API behcc.h
+    src/behcc/hash_encoder.cpp: Defines HashBinaryEncoder
 
     Copyright (c) 2021 Ralph Urlus <rurlus.dev@gmail.com>
 
@@ -9,24 +9,11 @@
     http://www.apache.org/licenses/LICENSE-2.0
 
 */
-#include <behcc_python.h>
-#include <pybind11/numpy.h>
-#include <numpy/arrayobject.h>
+#include <behcc/hash_encoder.h>
+
 namespace py = pybind11;
 
 namespace behcc { namespace pyapi {
-
-struct not_aligned_error : std::exception {
-    const char* p_message;
-    explicit not_aligned_error(const char* message) : p_message(message) {}
-    const char* what() const throw() { return p_message; }
-};
-
-struct encoding_size_error : std::exception {
-    const char* p_message;
-    explicit encoding_size_error(const char* message) : p_message(message) {}
-    const char* what() const throw() { return p_message; }
-};
 
 class HashBinaryEncoder {
 
@@ -39,7 +26,6 @@ class HashBinaryEncoder {
     char * data;
     PyArrayObject* arr;
     int* result_ptr = nullptr;
-    py::array_t<int> result;
 
     void hash8bit_enc() {
         char* ptr = data;
@@ -128,7 +114,7 @@ class HashBinaryEncoder {
     }
 
     py::array_t<int> transform(py::object src, uint64_t seed) {
-        result = py::array_t<int>(i_encoding_size * size);
+        auto result = py::array_t<int>(i_encoding_size * size);
         result_ptr = reinterpret_cast<int*>(result.request().ptr);
         seed = seed;
 
@@ -152,6 +138,8 @@ class HashBinaryEncoder {
                 hash_dyn_bit_enc();
                 break;
         }
+        result.resize({size, i_encoding_size});
+        result_ptr = nullptr;
         return result;
     }
 
@@ -161,16 +149,15 @@ class HashBinaryEncoder {
     }
 };
 
-// TODO
-//
-// Give paramter names and default for seed
-
 void bind_hashbinaryencoding(py::module &m) {
     py::class_<HashBinaryEncoder>(m, "HashBinaryEncoder")
         .def(py::init<>(), R"pbdoc(
             Initialise StringBinaryEncoder.
         )pbdoc")
-        .def("fit", &HashBinaryEncoder::fit, R"pbdoc(
+        .def(
+            "fit",
+            &HashBinaryEncoder::fit,
+            R"pbdoc(
             Set input and parameters.
 
             Parameters
@@ -182,8 +169,36 @@ void bind_hashbinaryencoding(py::module &m) {
                 encoding of sizes {8, 16, 32, 64, 128} are relatively faster
                 to compute than variable sized encodings
 
-        )pbdoc")
-        .def("transform", &HashBinaryEncoder::transform, R"pbdoc(
+            )pbdoc",
+            py::arg("src"),
+            py::arg("encoding_size")
+        )
+        .def(
+            "transform",
+            &HashBinaryEncoder::transform,
+            R"pbdoc(
+            Create binary encoding of hash of the input.
+
+            Parameters
+            ----------
+            src : np.ndarray
+                numpy array to be hashed and encoded
+            seed : int, optional
+                seed used for when computing the hash,
+                default is 42
+
+            Returns
+            -------
+            np.ndarray[int32]
+                array containing the encoding
+            )pbdoc",
+            py::arg("src"),
+            py::arg("seed") = 42
+        )
+        .def(
+            "fit_transform",
+            &HashBinaryEncoder::fit_transform,
+            R"pbdoc(
             Create binary encoding of hash of the input.
 
             Parameters
@@ -194,34 +209,20 @@ void bind_hashbinaryencoding(py::module &m) {
                 size of the encoding, must be between 1 and 128 inclusive.
                 encoding of sizes {8, 16, 32, 64, 128} are relatively faster
                 to compute than variable sized encodings
-            seed : int
-                seed used for when computing the hash
-
-            Returns
-            -------
-            np.ndarray[int32]
-                array containing the encoding
-        )pbdoc")
-        .def("fit_transform", &HashBinaryEncoder::fit_transform, R"pbdoc(
-            Create binary encoding of hash of the input.
-
-            Parameters
-            ----------
-            src : np.ndarray
-                numpy array to be hashed and encoded
-            encoding_size : {1...128}
-                size of the encoding, must be between 1 and 128 inclusive.
-                encoding of sizes {8, 16, 32, 64, 128} are relatively faster
-                to compute than variable sized encodings
-            seed : int
-                seed used for when computing the hash
+            seed : int, optional
+                seed used for when computing the hash,
+                default is 42
 
             Returns
             -------
             np.ndarray[int32]
                 array containing the encoding
 
-        )pbdoc");
+            )pbdoc",
+            py::arg("src"),
+            py::arg("encoding_size"),
+            py::arg("seed") = 42
+        );
 }
 
 }  // namespace pyapi
