@@ -30,6 +30,12 @@ struct encoding_size_error : std::exception {
     const char* what() const throw() { return p_message; }
 };
 
+struct uninitialiazed_error : std::exception {
+    const char* p_message;
+    explicit uninitialiazed_error(const char* message) : p_message(message) {}
+    const char* what() const throw() { return p_message; }
+};
+
 }  // namespace pyapi
 }  // namespace behcc
 

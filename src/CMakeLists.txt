@@ -3,7 +3,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.4...3.18)
 # ##############################################################################
 #                                  EXECUTABLE                                  #
 # ##############################################################################
-SET(MODNAME "behcc_extension")
+SET(MODNAME "behcc")
 ADD_DEFINITIONS(-DEXTENSION_MODULE_NAME=${MODNAME})
 SET(PROJ_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/)
 SET(EXT_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/extern)
