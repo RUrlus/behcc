@@ -81,25 +81,33 @@ static inline size_t get_stride(PyObject* src) {
     auto arr = reinterpret_cast<PyArrayObject*>(src);
     npy_intp* ptr = PyArray_STRIDES(arr);
     size_t ndim = PyArray_NDIM(arr);
-    if (ndim == 1) {
+    if (ndim < 2) {
         return ptr[0];
     }
-    npy_intp* end = reinterpret_cast<npy_intp*>(
-        reinterpret_cast<char *>(ptr) +  ndim
-    );
-    return *std::min_element(ptr, end);
+    if (PyArray_CHKFLAGS(arr, NPY_ARRAY_F_CONTIGUOUS)) {
+        return ptr[1];
+    }
+    return ptr[0];
 }
 
 static inline size_t get_stride(PyArrayObject* arr) {
     npy_intp* ptr = PyArray_STRIDES(arr);
     size_t ndim = PyArray_NDIM(arr);
-    if (ndim == 1) {
+    if (ndim < 2) {
         return ptr[0];
     }
-    npy_intp* end = reinterpret_cast<npy_intp*>(
-        reinterpret_cast<char *>(ptr) +  ndim
-    );
-    return *std::min_element(ptr, end);
+    if (PyArray_CHKFLAGS(arr, NPY_ARRAY_F_CONTIGUOUS)) {
+        return ptr[1];
+    }
+    return ptr[0];
+}
+
+static inline bool check_ndim(PyArrayObject* arr) {
+    size_t ndim = PyArray_NDIM(arr);
+    if (ndim > 1) {
+        return (PyArray_SHAPE(arr)[1] == 1);
+    }
+    return true;
 }
 
 }  // namespace behcc
