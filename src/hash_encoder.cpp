@@ -22,9 +22,9 @@ class HashBinaryEncoder {
     int itemsize;
     size_t size;
     size_t stride;
-    size_t encoding_size;
+    size_t encoding_size = 0;
     size_t i_encoding_size;
-    int64_t seed;
+    int64_t seed = -1;
     uint64_t i_seed;
     int* result_ptr = nullptr;
     char * data;
@@ -93,9 +93,6 @@ class HashBinaryEncoder {
     } // dyn_bit_enc
 
  public:
-    py::object encoding_size_ = py::none();
-    py::object seed_ = py::none();
-
     explicit HashBinaryEncoder(size_t encoding_size, int64_t seed) :
         seed{seed}, encoding_size{encoding_size} {}
 
@@ -108,7 +105,7 @@ class HashBinaryEncoder {
         }
     }
 
-    py::dict get_params() {
+    py::dict get_params(py::kwargs kwargs) {
         using pybind11::literals::operator""_a;
         return py::dict(
             "seed"_a = seed,
@@ -116,18 +113,16 @@ class HashBinaryEncoder {
         );
     }
 
-    void fit(const py::object& src) {
+    void fit(const py::object& src, const py::object& y) {
         if (encoding_size > 128) {
             throw encoding_size_error("Maximum encoding_size is 128");
         } else if (encoding_size < 1) {
             throw encoding_size_error("Minimum encoding_size is 1");
         } else {
-            encoding_size_ = py::cast(encoding_size);
             i_encoding_size = encoding_size;
         }
         if (seed >= 0) {
             i_seed = static_cast<uint64_t>(seed);
-            seed_ = py::cast(seed);
         } else {
             throw uninitialiazed_error("seed must be integer >= 0");
         }
@@ -136,11 +131,15 @@ class HashBinaryEncoder {
 
     py::array_t<int> transform(const py::object& src) {
         if (param_check) {
-            fit(src);
+            fit(src, py::none());
         }
         arr = reinterpret_cast<PyArrayObject*>(src.ptr());
+
         if (!is_aligned(arr)) {
             throw not_aligned_error("Unaligned arrays are not supoorted");
+        }
+        if (!check_ndim(arr)) {
+            throw not_aligned_error("X must be one-dimensional");
         }
         data = get_ptr(arr);
         size = get_size(arr);
@@ -175,26 +174,14 @@ class HashBinaryEncoder {
         return result;
     }
 
-    py::array_t<int> fit_transform(py::object src) {
-        fit(src);
+    py::array_t<int> fit_transform(const py::object& src, const py::object& y) {
+        fit(src, y);
         return transform(src);
-    }
-
-    py::dict _more_tags() {
-        using pybind11::literals::operator""_a;
-        auto list = py::list(3);
-        list.append<std::string>("1darray");
-        list.append<std::string>("1darray");
-        list.append<std::string>("categorical");
-        return py::dict(
-            "allow_nan"_a = false,
-            "stateless"_a = true,
-            "X_types"_a = list
-        );
     }
 };
 
 void bind_hashbinaryencoding(py::module &m) {
+    using pybind11::literals::operator""_a;
     py::class_<HashBinaryEncoder>(
         m,
         "HashBinaryEncoder",
@@ -204,10 +191,15 @@ void bind_hashbinaryencoding(py::module &m) {
 
             The eucledian distance between any encoding vectors
             follows an approximate Normal distribution.
-        )pbdoc"
+        )pbdoc",
+        py::dynamic_attr()
     )
-        .def_readonly("n_components_", &HashBinaryEncoder::encoding_size_)
-        .def_readonly("seed_", &HashBinaryEncoder::seed_)
+        .def("__copy__",  [](const HashBinaryEncoder &self) {
+            return HashBinaryEncoder(self);
+        })
+        .def("__deepcopy__", [](const HashBinaryEncoder &self, py::dict) {
+            return HashBinaryEncoder(self);
+        }, "memo"_a)
         .def(py::init<size_t, int64_t>(), R"pbdoc(
             Initialise StringBinaryEncoder.
 
@@ -255,11 +247,15 @@ void bind_hashbinaryencoding(py::module &m) {
 
             Parameters
             ----------
-            src : np.ndarray
+            X : np.ndarray, optional
                 numpy array to be hashed and encoded
+            y : np.ndarray, optional
+                param is ignored and only exists for
+                compatibility with scikit-pipeline
 
             )pbdoc",
-            py::arg("src") = py::none()
+            py::arg("X") = py::none(),
+            py::arg("y") = py::none()
         )
         .def(
             "transform",
@@ -269,7 +265,7 @@ void bind_hashbinaryencoding(py::module &m) {
 
             Parameters
             ----------
-            src : np.ndarray
+            X : np.ndarray
                 numpy array to be hashed and encoded
 
             Returns
@@ -277,7 +273,7 @@ void bind_hashbinaryencoding(py::module &m) {
             np.ndarray[int32]
                 array containing the encoding
             )pbdoc",
-            py::arg("src")
+            py::arg("X")
         )
         .def(
             "fit_transform",
@@ -287,15 +283,11 @@ void bind_hashbinaryencoding(py::module &m) {
 
             Parameters
             ----------
-            src : np.ndarray
+            X : np.ndarray
                 numpy array to be hashed and encoded
-            encoding_size : {1...128}
-                size of the encoding, must be between 1 and 128 inclusive.
-                encoding of sizes {8, 16, 32, 64, 128} are relatively faster
-                to compute than variable sized encodings
-            seed : int, optional
-                seed used for when computing the hash,
-                default is 42
+            y : np.ndarray, optional
+                param is ignored and only exists for
+                compatibility with scikit-pipeline
 
             Returns
             -------
@@ -303,7 +295,8 @@ void bind_hashbinaryencoding(py::module &m) {
                 array containing the encoding
 
             )pbdoc",
-            py::arg("src")
+            py::arg("X"),
+            py::arg("y") = py::none()
         );
 }
 
