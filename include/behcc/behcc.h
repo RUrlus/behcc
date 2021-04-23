@@ -37,7 +37,7 @@ inline void btbe(T input, const int nbits, int* result) {
 #else
     // first bit of variable is store at last location in memory
     int j = 0;
-    for (int b = nbits-1; b != -1; b--) {
+    for (int b = nbits; b-- > 0; ) {
         result[j] = ((input >> b) & 1);
         j++;
 #endif
@@ -117,7 +117,8 @@ inline void btbe_32bit(uint64_t input, int* result) {
 #else
     // first bit of variable is store at last location in memory
     int j = 0;
-    for (int b = 31; b != -1; b--) {
+
+    for (int b = 32; b-- > 0; ) {
         result[j] = ((input >> b) & 1);
         j++;
 #endif
@@ -133,7 +134,7 @@ inline void btbe_32bit(T input, int* result) {
 #else
     // first bit of variable is store at last location in memory
     int j = 0;
-    for (int b = 31; b != -1; b--) {
+    for (int b = 32; b-- > 0; ) {
         result[j] = ((input >> b) & 1);
         j++;
 #endif
@@ -148,7 +149,7 @@ inline void btbe_64bit(uint64_t input, int* result) {
 #else
     // first bit of variable is store at last location in memory
     int j = 0;
-    for (int b = 63; b != -1; b--) {
+    for (int b = 64; b-- > 0; ) {
         result[j] = ((input >> b) & 1);
         j++;
 #endif
@@ -164,7 +165,7 @@ inline void btbe_64bit(T input, int* result) {
 #else
     // first bit of variable is store at last location in memory
     int j = 0;
-    for (int b = 63; b != -1; b--) {
+    for (int b = 64; b-- > 0; ) {
         result[j] = ((input >> b) & 1);
         j++;
 #endif
@@ -201,11 +202,9 @@ inline void btbe_128bit(XXH128_hash_t input_set, const int output_size, int* res
 */
 
 inline void str_to_binary_array(const std::string input, const int size, int* result) {
-    int val = 0;
-    auto res_ptr = reinterpret_cast<char*>(result);
     for (int i = 0; i < size; i++) {
-        pr::btbe_8bit<int>(input[i], reinterpret_cast<int*>(res_ptr));
-        res_ptr += 8;
+        pr::btbe_8bit<int>(input[i], result);
+        result += 8;
     }
 }
 
